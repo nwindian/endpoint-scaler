@@ -1,0 +1,36 @@
+replicaCount: 1
+
+image:
+  repository: endpoint-scaler
+  tag: dev2
+  pullPolicy: Never
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 128Mi
+  requests:
+    cpu: 10m
+    memory: 64Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+leaderElection:
+  enabled: true
+
+metrics:
+  port: 8080
+
+health:
+  port: 8081

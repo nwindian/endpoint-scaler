@@ -1,0 +1,49 @@
+# HTTP Primary Example
+# Routes 100% of traffic to the endpoint deployment.
+# The endpoint exclusively handles these paths.
+apiVersion: endpointscaler.io/v1alpha1
+kind: EndpointPolicy
+metadata:
+  name: my-app-http-primary
+  namespace: default
+spec:
+  appRef:
+    name: my-app
+    namespace: default
+    port: 8080
+    image: my-app:v1.0.0
+  gatewayRef:
+    name: my-gateway
+    namespace: default
+    hostname: api.example.com
+  endpoints:
+    - id: compute
+      type: http
+      match:
+        path: /api/v1/compute
+      strategy: primary  # 100% to endpoint, endpoint handles this path
+      resources:
+        cpuLimit: "8"
+        cpuRequest: "500m"
+        memLimit: 2Gi
+        memRequest: 512Mi
+      hpa:
+        min: 1
+        max: 10
+        cpuTarget: 80
+      replicas: 1
+    - id: transform
+      type: http
+      match:
+        path: /api/v1/transform
+      strategy: primary
+      resources:
+        cpuLimit: "4"
+        cpuRequest: "250m"
+        memLimit: 1Gi
+        memRequest: 256Mi
+      hpa:
+        min: 1
+        max: 20
+        cpuTarget: 75
+      replicas: 1

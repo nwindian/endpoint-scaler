@@ -1,0 +1,51 @@
+# gRPC Primary Example
+# Routes 100% of traffic to the endpoint deployment.
+# The endpoint exclusively handles these gRPC services.
+apiVersion: endpointscaler.io/v1alpha1
+kind: EndpointPolicy
+metadata:
+  name: my-grpc-app-primary
+  namespace: default
+spec:
+  appRef:
+    name: my-grpc-app
+    namespace: default
+    port: 9090
+    image: my-grpc-app:v1.0.0
+  gatewayRef:
+    name: my-gateway
+    namespace: default
+    hostname: grpc.example.com
+  endpoints:
+    - id: analytics-service
+      type: grpc
+      match:
+        service: com.example.AnalyticsService
+        method: ProcessAnalytics
+      strategy: primary  # 100% to endpoint, endpoint handles this service
+      resources:
+        cpuLimit: "8"
+        cpuRequest: "500m"
+        memLimit: 2Gi
+        memRequest: 512Mi
+      hpa:
+        min: 1
+        max: 10
+        cpuTarget: 80
+      replicas: 1
+    - id: notification-service
+      type: grpc
+      match:
+        service: com.example.NotificationService
+        method: SendNotification
+      strategy: primary
+      resources:
+        cpuLimit: "2"
+        cpuRequest: "100m"
+        memLimit: 512Mi
+        memRequest: 128Mi
+      hpa:
+        min: 1
+        max: 15
+        cpuTarget: 75
+      replicas: 1

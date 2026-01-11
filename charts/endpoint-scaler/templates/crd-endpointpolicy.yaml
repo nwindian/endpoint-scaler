@@ -1,0 +1,203 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: endpointpolicies.endpointscaler.io
+  labels:
+    {{- include "endpoint-scaler.labels" . | nindent 4 }}
+spec:
+  group: endpointscaler.io
+  names:
+    kind: EndpointPolicy
+    listKind: EndpointPolicyList
+    plural: endpointpolicies
+    singular: endpointpolicy
+    shortNames:
+      - ep
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: App
+          type: string
+          jsonPath: .spec.appRef.name
+        - name: Endpoints
+          type: integer
+          jsonPath: .status.endpointCount
+        - name: Ready
+          type: string
+          jsonPath: .status.conditions[?(@.type=="Ready")].status
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            apiVersion:
+              type: string
+            kind:
+              type: string
+            metadata:
+              type: object
+            spec:
+              type: object
+              required:
+                - appRef
+                - gatewayRef
+                - endpoints
+              properties:
+                appRef:
+                  type: object
+                  required:
+                    - name
+                    - image
+                  properties:
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                    port:
+                      type: integer
+                      format: int32
+                      default: 80
+                      description: Service port (external-facing)
+                    containerPort:
+                      type: integer
+                      format: int32
+                      default: 8080
+                      description: Port the container listens on
+                    image:
+                      type: string
+                      description: Container image (required)
+                gatewayRef:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                    hostname:
+                      type: string
+                      description: Hostname for routes (e.g., "api.example.com")
+                endpoints:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    required:
+                      - id
+                      - match
+                    properties:
+                      id:
+                        type: string
+                        pattern: "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+                      type:
+                        type: string
+                        enum: [http, grpc]
+                        default: http
+                      match:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                          service:
+                            type: string
+                          method:
+                            type: string
+                      strategy:
+                        type: string
+                        description: |
+                          Routing strategy:
+                          - canary: split traffic (canaryWeight% to endpoint, rest to main). Requires main service to exist.
+                          - primary: 100% to endpoint (endpoint handles this path exclusively)
+                        enum: [canary, primary]
+                        default: primary
+                      canaryWeight:
+                        type: integer
+                        format: int32
+                        minimum: 1
+                        maximum: 100
+                        default: 5
+                      resources:
+                        type: object
+                        properties:
+                          cpuLimit:
+                            type: string
+                          cpuRequest:
+                            type: string
+                          memLimit:
+                            type: string
+                          memRequest:
+                            type: string
+                      hpa:
+                        type: object
+                        required:
+                          - min
+                          - max
+                        properties:
+                          min:
+                            type: integer
+                            format: int32
+                            minimum: 1
+                          max:
+                            type: integer
+                            format: int32
+                            minimum: 1
+                          cpuTarget:
+                            type: integer
+                            format: int32
+                            minimum: 1
+                            maximum: 100
+                          memoryTarget:
+                            type: integer
+                            format: int32
+                            minimum: 1
+                            maximum: 100
+                      replicas:
+                        type: integer
+                        format: int32
+                        default: 1
+            status:
+              type: object
+              properties:
+                endpointCount:
+                  type: integer
+                conditions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                      status:
+                        type: string
+                      lastTransitionTime:
+                        type: string
+                        format: date-time
+                      reason:
+                        type: string
+                      message:
+                        type: string
+                endpointStatuses:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      ready:
+                        type: boolean
+                      deploymentName:
+                        type: string
+                      serviceName:
+                        type: string
+                      routeName:
+                        type: string
+                      message:
+                        type: string

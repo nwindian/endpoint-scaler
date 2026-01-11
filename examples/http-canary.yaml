@@ -1,0 +1,52 @@
+# HTTP Canary Example
+# Routes 5% of traffic to the endpoint deployment, 95% to main app.
+# NOTE: Canary strategy requires main service "{appRef.name}-svc" to exist.
+apiVersion: endpointscaler.io/v1alpha1
+kind: EndpointPolicy
+metadata:
+  name: my-app-http-canary
+  namespace: default
+spec:
+  appRef:
+    name: my-app
+    namespace: default
+    port: 8080
+    image: my-app:v1.0.0
+  gatewayRef:
+    name: my-gateway
+    namespace: default
+    hostname: api.example.com
+  endpoints:
+    - id: lookup
+      type: http
+      match:
+        path: /api/v1/lookup
+      strategy: canary
+      canaryWeight: 5  # 5% to endpoint, 95% to main
+      resources:
+        cpuLimit: "2"
+        cpuRequest: "100m"
+        memLimit: 512Mi
+        memRequest: 128Mi
+      hpa:
+        min: 1
+        max: 25
+        cpuTarget: 70
+      replicas: 2
+    - id: search
+      type: http
+      match:
+        path: /api/v1/search
+      strategy: canary
+      canaryWeight: 10  # 10% to endpoint, 90% to main
+      resources:
+        cpuLimit: "4"
+        cpuRequest: "200m"
+        memLimit: 1Gi
+        memRequest: 256Mi
+      hpa:
+        min: 2
+        max: 50
+        cpuTarget: 60
+        memoryTarget: 80
+      replicas: 3

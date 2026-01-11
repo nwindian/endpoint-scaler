@@ -1,0 +1,14 @@
+apiVersion: v2
+name: endpoint-scaler
+description: Kubernetes controller for endpoint-based scaling and routing
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - kubernetes
+  - controller
+  - autoscaling
+  - gateway-api
+  - routing
+maintainers:
+  - name: endpoint-scaler
