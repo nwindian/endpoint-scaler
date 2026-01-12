@@ -84,18 +84,18 @@ func TestBuildDeployment(t *testing.T) {
 		t.Errorf("expected image 'my-app:v1.0.0', got %q", container.Image)
 	}
 
-	// Check MICROAPI_GUARDRAIL env var
+	// Check ENDPOINTSCALER_GUARDRAIL env var
 	foundGuardrail := false
 	for _, env := range container.Env {
-		if env.Name == "MICROAPI_GUARDRAIL" {
+		if env.Name == "ENDPOINTSCALER_GUARDRAIL" {
 			foundGuardrail = true
 			if env.Value != "lookup" {
-				t.Errorf("expected MICROAPI_GUARDRAIL='lookup', got %q", env.Value)
+				t.Errorf("expected ENDPOINTSCALER_GUARDRAIL='lookup', got %q", env.Value)
 			}
 		}
 	}
 	if !foundGuardrail {
-		t.Error("MICROAPI_GUARDRAIL env var not found")
+		t.Error("ENDPOINTSCALER_GUARDRAIL env var not found")
 	}
 
 	// Check resources
