@@ -193,11 +193,11 @@ The Go SDK provides middleware for endpoint isolation:
 import "github.com/example/endpoint-scaler/sdk/go"
 
 mux := http.NewServeMux()
-mux.Handle("/api/v1/compute", microapi.Guard("compute", computeHandler))
-mux.Handle("/api/v1/search", microapi.Guard("search", searchHandler))
+mux.Handle("/api/v1/compute", endpointscaler.Guard("compute", computeHandler))
+mux.Handle("/api/v1/search", endpointscaler.Guard("search", searchHandler))
 ```
 
-The `Guard` middleware checks the `MICROAPI_GUARDRAIL` environment variable (set by the controller) and only executes the handler if it matches the endpoint ID.
+The `Guard` middleware checks the `ENDPOINTSCALER_GUARDRAIL` environment variable (set by the controller) and only executes the handler if it matches the endpoint ID.
 
 ## Validation
 

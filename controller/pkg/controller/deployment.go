@@ -82,7 +82,7 @@ func (r *EndpointPolicyReconciler) buildDeployment(
 			Protocol:      corev1.ProtocolTCP,
 		}},
 		Env: []corev1.EnvVar{{
-			Name:  "MICROAPI_GUARDRAIL",
+			Name:  "ENDPOINTSCALER_GUARDRAIL",
 			Value: endpoint.ID,
 		}},
 	}
