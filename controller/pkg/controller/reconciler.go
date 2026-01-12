@@ -41,6 +41,7 @@ func (r *EndpointPolicyReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	policy := &esv1alpha1.EndpointPolicy{}
 	if err := r.Get(ctx, req.NamespacedName, policy); err != nil {
 		if apierrors.IsNotFound(err) {
+			RemovePolicyMetrics(req.Namespace, req.Name)
 			return ctrl.Result{}, nil
 		}
 		return ctrl.Result{}, err
@@ -132,6 +133,7 @@ func (r *EndpointPolicyReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		}
 
 		status.Ready = true
+		RecordEndpointInfo(policy.Namespace, policy.Name, endpoint.ID, endpoint.Type, endpoint.Strategy)
 		endpointStatuses = append(endpointStatuses, status)
 		desired[endpoint.ID] = true
 	}
@@ -185,6 +187,7 @@ func (r *EndpointPolicyReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			readyCount++
 		}
 	}
+	RecordEndpointMetrics(policy.Namespace, policy.Name, len(policy.Spec.Endpoints), readyCount)
 
 	condition := metav1.Condition{
 		Type:               "Ready",
