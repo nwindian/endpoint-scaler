@@ -199,6 +199,38 @@ mux.Handle("/api/v1/search", endpointscaler.Guard("search", searchHandler))
 
 The `Guard` middleware checks the `ENDPOINTSCALER_GUARDRAIL` environment variable (set by the controller) and only executes the handler if it matches the endpoint ID.
 
+## Metrics
+
+The controller exposes Prometheus metrics at `:8080/metrics`.
+
+| Metric | Type | Description |
+|--------|------|-------------|
+| `endpointscaler_endpoints_total` | Gauge | Total endpoints per policy |
+| `endpointscaler_endpoints_ready` | Gauge | Ready endpoints per policy |
+| `endpointscaler_endpoint_info` | Gauge | Endpoint details (type, strategy) |
+
+Labels: `namespace`, `policy`, `endpoint`, `type`, `strategy`
+
+### Example Queries
+
+```promql
+# Policies with unhealthy endpoints
+endpointscaler_endpoints_total - endpointscaler_endpoints_ready > 0
+
+# Health percentage
+(endpointscaler_endpoints_ready / endpointscaler_endpoints_total) * 100
+
+# All HTTP endpoints using canary strategy
+endpointscaler_endpoint_info{type="http", strategy="canary"}
+```
+
+### Access
+
+```bash
+kubectl port-forward deploy/endpoint-scaler 8080:8080
+curl localhost:8080/metrics | grep endpointscaler
+```
+
 ## Validation
 
 The controller validates specs before reconciling:
